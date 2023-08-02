@@ -3,27 +3,31 @@ const http = require('http');
 
 const wordListFile = 'wordlist.txt'; // Path to the file containing the list of words, one word per line.
 let words = [];
-let currentWordIndex = 0;
+let wordOfTheDay = null;
+let currentDay = -1;
 
 // Function to read the word list from the file and store it in the 'words' array.
 function readWordList() {
   try {
     const data = fs.readFileSync(wordListFile, 'utf8');
     words = data.trim().split('\n');
-    currentWordIndex = 0;
   } catch (error) {
     console.error('Error reading the word list file:', error);
   }
 }
 
-// Function to get the current word of the day.
-function getWordOfTheDay() {
-  if (words.length > 0) {
-    const wordOfTheDay = words[currentWordIndex];
-    currentWordIndex = (currentWordIndex + 1) % words.length;
-    return wordOfTheDay;
-  } else {
-    return 'No words available.';
+// Function to get a random word from the 'words' array.
+function getRandomWord() {
+  const randomIndex = Math.floor(Math.random() * words.length);
+  return words[randomIndex];
+}
+
+// Function to update the word of the day.
+function updateWordOfTheDay() {
+  const currentDate = new Date().getDate();
+  if (currentDay !== currentDate) {
+    wordOfTheDay = getRandomWord();
+    currentDay = currentDate;
   }
 }
 
@@ -33,7 +37,7 @@ const port = process.env.PORT || 3000;
 http.createServer((req, res) => {
   if (req.method === 'GET') {
     readWordList();
-    const wordOfTheDay = getWordOfTheDay();
+    updateWordOfTheDay();
 
     // Set CORS headers to allow requests from any origin (for simplicity, update this for production use).
     res.setHeader('Access-Control-Allow-Origin', '*');
